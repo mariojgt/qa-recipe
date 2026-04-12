@@ -10,7 +10,7 @@ function generateVariables() {
 
   return {
     timestamp: String(ts),
-    randomEmail: `qa.tester+${ts}@test-patchstack.dev`,
+    randomEmail: `qa.tester+${ts}@test-example.dev`,
     randomPassword: `QaT3st!${hex}${ts}`,
     randomName: `QA Tester ${hex}`,
     randomPhone: `555${String(ts).slice(-7)}`,
