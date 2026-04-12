@@ -8,6 +8,7 @@
     "qa-recipe-mcp": "src/mcp-server.js"
   },
   "scripts": {
+    "recipe": "node src/cli.js",
     "mcp": "node src/mcp-server.js",
     "execute": "node src/execute.js",
     "save": "node src/save-recipe.js",

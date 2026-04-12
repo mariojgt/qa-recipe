@@ -1,21 +1,63 @@
-# QA Recipe — MCP Server for Browser Testing
+# QA Recipe
 
-A standalone [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server for automated browser QA testing. Run tests interactively from AI agents (VS Code Copilot, Claude Code) or headlessly from the command line.
+An [MCP](https://modelcontextprotocol.io/) server + CLI tool for automated browser QA testing with [Puppeteer](https://pptr.dev/). Write test recipes as JSON, then run them from AI agents (VS Code Copilot, Claude Code) or the command line.
+
+## Installation
+
+```bash
+git clone https://github.com/mariojgt/qa-recipe.git
+cd qa-recipe
+npm install        # or: bun install
+```
+
+Copy `.env.example` to `.env` and adjust if needed:
+
+```bash
+cp .env.example .env
+```
 
 ## Quick Start
 
+### Interactive CLI (recommended)
+
+Pick a recipe from the menu and run it:
+
 ```bash
-cd qaRecipe
-npm install
+npm run recipe     # or: bun run recipe
+```
+
+```
+  QA Recipe Runner
+  ─────────────────────────────────────
+
+  [1] my-login-test (5 steps)
+      Test the login flow end to end
+
+  [2] signup-flow (12 steps)
+      Register a new user and verify email
+
+  [0] Exit
+
+  > Select a recipe (1-2):
+```
+
+### Run a specific recipe directly
+
+```bash
+npm run run -- my-login-test
+# or
+node src/runner.js my-login-test
 ```
 
 ---
 
-## Setup with VS Code (GitHub Copilot)
+## Using as an MCP Server
 
-### 1. Add the MCP server
+QA Recipe exposes browser automation as MCP tools so AI agents can run and manage tests.
 
-Create or edit `.vscode/mcp.json` in your **workspace root**:
+### VS Code (GitHub Copilot)
+
+Add to `.vscode/mcp.json` in your workspace:
 
 ```json
 {
@@ -23,26 +65,21 @@ Create or edit `.vscode/mcp.json` in your **workspace root**:
     "qa-recipe": {
       "type": "stdio",
       "command": "node",
-      "args": ["qaRecipe/src/mcp-server.js"],
-      "env": {}
+      "args": ["/path/to/qa-recipe/src/mcp-server.js"]
     }
   }
 }
 ```
 
-### 2. Restart the MCP server
+Then open the Command Palette → **MCP: List Servers** → start `qa-recipe`.
 
-Open the Command Palette (`Cmd+Shift+P`) and run:
+### Claude Code
 
+```bash
+claude mcp add qa-recipe node /path/to/qa-recipe/src/mcp-server.js
 ```
-MCP: List Servers
-```
 
-Select `qa-recipe` and click **Start** (or **Restart** if already running).
-
-### 3. Use the tools
-
-In Copilot Chat (Agent mode), the following tools become available:
+### Available MCP Tools
 
 | Tool | Description |
 |------|-------------|
@@ -53,61 +90,41 @@ In Copilot Chat (Agent mode), the following tools become available:
 | `qa_load_recipe` | View the full details of a saved recipe |
 | `qa_delete_recipe` | Delete a saved recipe |
 
-Example prompt:
+Example prompt in Agent mode:
 
 > Navigate to https://example.com, type "hello" into the search box, click submit, and screenshot the result.
 
 ---
 
-## Setup with Claude Code
+## Writing Recipes
 
-### 1. Add the MCP server
+Recipes are JSON files stored in `recipes/`. Each recipe defines a sequence of browser actions.
 
-Run this from your **project root**:
-
-```bash
-claude mcp add qa-recipe node qaRecipe/src/mcp-server.js
-```
-
-Or add it manually to your Claude Code MCP config (`.claude/mcp.json` or `~/.claude/mcp.json`):
+### Recipe file format
 
 ```json
 {
-  "mcpServers": {
-    "qa-recipe": {
-      "command": "node",
-      "args": ["/absolute/path/to/qaRecipe/src/mcp-server.js"]
-    }
-  }
+  "name": "my-test",
+  "description": "Describe what this test does",
+  "version": 1,
+  "config": {
+    "headless": true,
+    "viewportWidth": 1280,
+    "viewportHeight": 800,
+    "timeout": 30000
+  },
+  "steps": [
+    { "action": "navigate", "value": "https://example.com", "description": "Open page" },
+    { "action": "type", "selector": "#email", "value": "{{randomEmail}}", "description": "Fill email" },
+    { "action": "click", "selector": "button[type=submit]", "description": "Submit form" },
+    { "action": "screenshot", "description": "Capture result" }
+  ]
 }
 ```
 
-### 2. Verify
+Save it to `recipes/my-test.json` and it will appear in the interactive CLI.
 
-```bash
-claude mcp list
-```
-
-You should see `qa-recipe` listed. The tools are immediately available in your Claude Code session.
-
----
-
-## Running Recipes from the Command Line
-
-```bash
-# List saved recipes
-ls qaRecipe/recipes/
-
-# Run a recipe
-node qaRecipe/src/runner.js patchstack-free-register
-
-# Or via npm script (if defined in package.json)
-npm run test:patchstack-free-register
-```
-
----
-
-## Available Step Actions
+### Step Actions
 
 | Action | Required Fields | Description |
 |--------|----------------|-------------|
@@ -119,10 +136,10 @@ npm run test:patchstack-free-register
 | `scroll` | `value` (pixels) | Scroll the page |
 | `wait` | `value` (ms) | Wait for a duration |
 | `screenshot` | — | Capture a screenshot |
-| `assert_url` | `value` | Assert the current URL contains value |
+| `assert_url` | `value` | Assert the current URL contains a string |
 | `assert_text` | `value` | Assert the page contains text |
 | `assert_element` | `selector` | Assert an element exists |
-| `type_in_iframe` | `iframeUrlMatch`, `iframeInputSelector`, `value` | Type into an input inside an iframe |
+| `type_in_iframe` | `iframeUrlMatch` or `iframeSelector`, `value` | Type into an input inside an iframe |
 | `evaluate` | `value` (JS code) | Run arbitrary JavaScript on the page |
 | `click_text` | `value` (text) | Click an element containing specific text |
 
@@ -130,53 +147,37 @@ npm run test:patchstack-free-register
 
 ## Template Variables
 
-Use `{{variableName}}` placeholders in recipe step `value`, `selector`, `iframeInputSelector`, or `iframeUrlMatch` fields. Variables are resolved fresh on every run.
+Use `{{variableName}}` placeholders in `value`, `selector`, `iframeInputSelector`, or `iframeUrlMatch` fields. They are resolved to fresh values on every run.
 
-| Variable | Example Output | Description |
-|----------|---------------|-------------|
-| `{{randomEmail}}` | `qa.tester+1775741726393@test-patchstack.dev` | Unique email per run |
-| `{{randomPassword}}` | `QaT3st!a1b2c3d41775741726393` | Unique strong password |
-| `{{randomPhone}}` | `5551726393` | Unique phone number |
-| `{{randomName}}` | `QA Tester a1b2c3d4` | Random full name |
-| `{{randomHex}}` | `a1b2c3d4` | 8-char random hex string |
-| `{{timestamp}}` | `1775741726393` | Current Unix timestamp (ms) |
-
-### Example recipe step using variables
-
-```json
-{
-  "action": "type",
-  "selector": "input[placeholder=\"Email address\"]",
-  "value": "{{randomEmail}}",
-  "description": "Enter a unique email address"
-}
-```
+| Variable | Example | Description |
+|----------|---------|-------------|
+| `{{randomEmail}}` | `qa.tester+1718001234567@test-patchstack.dev` | Unique email |
+| `{{randomPassword}}` | `QaT3st!a1b2c3d41718001234567` | Strong password |
+| `{{randomPhone}}` | `5551234567` | Phone number |
+| `{{randomName}}` | `QA Tester a1b2c3d4` | Full name |
+| `{{randomHex}}` | `a1b2c3d4` | 8-char hex string |
+| `{{timestamp}}` | `1718001234567` | Unix timestamp (ms) |
 
 ---
 
-## Recipe File Format
+## All CLI Commands
 
-Recipes are stored as JSON in `qaRecipe/recipes/`. Example:
+| Command | Description |
+|---------|-------------|
+| `npm run recipe` | Interactive recipe picker |
+| `npm run run -- <name>` | Run a specific recipe |
+| `npm run list` | List all saved recipes (JSON) |
+| `npm run execute -- --file steps.json` | Execute steps from a JSON file |
+| `npm run save -- <name> --steps '[...]'` | Save a new recipe |
+| `npm run mcp` | Start the MCP server |
 
-```json
-{
-  "name": "my-test",
-  "description": "Describe what this test does",
-  "version": 1,
-  "config": {
-    "headless": true,
-    "viewportWidth": 1280,
-    "viewportHeight": 900,
-    "timeout": 30000
-  },
-  "steps": [
-    { "action": "navigate", "value": "https://example.com", "description": "Open page" },
-    { "action": "type", "selector": "#email", "value": "{{randomEmail}}", "description": "Fill email" },
-    { "action": "click", "selector": "button[type=submit]", "description": "Submit form" },
-    { "action": "screenshot", "description": "Capture result" }
-  ]
-}
-```
+All commands also work with `bun` (e.g. `bun run recipe`).
+
+---
+
+## License
+
+MIT
 
 ---
 
