@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "dev-mcp": {
-      "command": "node",
-      "args": ["/Users/mariotarosso/Documents/laravel-godmode/projects/projectSass/DevMcp/dist/index.js"]
-    }
-  }
-}
