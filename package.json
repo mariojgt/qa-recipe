@@ -1,0 +1,23 @@
+{
+  "name": "qa-recipe",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "QA automation MCP server for automated browser testing",
+  "bin": {
+    "qa-recipe-mcp": "src/mcp-server.js"
+  },
+  "scripts": {
+    "mcp": "node src/mcp-server.js",
+    "execute": "node src/execute.js",
+    "save": "node src/save-recipe.js",
+    "list": "node src/save-recipe.js --list",
+    "run": "node src/runner.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "dotenv": "^16.4.7",
+    "puppeteer": "^24.0.0",
+    "zod": "^3.24.4"
+  }
+}
