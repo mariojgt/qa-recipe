@@ -1,6 +1,38 @@
+<div align="center">
+  <img src="assets/banner.png" alt="QA Recipe Banner" width="100%" />
+</div>
+
+<div align="center">
+
 # QA Recipe
 
-An [MCP](https://modelcontextprotocol.io/) server + CLI tool for automated browser QA testing with [Puppeteer](https://pptr.dev/). Write test recipes as JSON, then run them from AI agents (VS Code Copilot, Claude Code) or the command line.
+**Describe browser tests in plain JSON. Run them from your AI agent or the terminal. Let the robot do the clicking.**
+
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
+[![Puppeteer](https://img.shields.io/badge/Puppeteer-24-40B5A4?logo=googlechrome&logoColor=white)](https://pptr.dev)
+[![MCP](https://img.shields.io/badge/MCP-Compatible-4FC3F7?logo=openai&logoColor=white)](https://modelcontextprotocol.io)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+</div>
+
+---
+
+## What Is This?
+
+QA Recipe is a **zero-config browser automation framework** that turns JSON test recipes into real browser actions — clicks, form fills, assertions, screenshots — powered by [Puppeteer](https://pptr.dev/).
+
+What makes it different: it ships as both a **CLI tool** and an **MCP (Model Context Protocol) server**, so your AI coding assistant (GitHub Copilot, Claude Code) can write *and* run your tests without leaving the chat.
+
+### Key Highlights
+
+- **Recipe-driven** — define browser flows as readable JSON; no code required
+- **AI-native** — plug in as an MCP server so Copilot or Claude can create and execute tests on demand
+- **Template variables** — `{{randomEmail}}`, `{{randomPassword}}`, `{{timestamp}}` keep every run unique
+- **Auto-screenshots** — every step captures a screenshot, timestamped and organised automatically
+- **Interactive CLI** — pick a recipe from a menu, or run it directly by name
+- **iframe support** — test complex SPAs with nested iframe interactions
+
+---
 
 ## Installation
 
